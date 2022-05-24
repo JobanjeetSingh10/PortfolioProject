@@ -1,0 +1,124 @@
+ks <- read.csv("C:/Users/Joban Sra/OneDrive/Documents/R/kickstarter_brainstation.csv")
+
+
+#Time Elapsed
+library(ggplot2)
+ks$deadline <- as.Date(ks$deadline)
+ks$launched <- as.Date(ks$launched)
+ks$timeElapsed <- (ks$deadline - ks$launched)
+summary(success$time_in_days)
+#create subset of successful campaigns
+success <- subset(ks, ks$state == 'successful')
+failed <- subset(ks, ks$state=="canceled"|ks$state=="failed")
+success$time_in_days <- as.numeric(success$timeElapsed)
+failed$time_in_days <- as.numeric(failed$timeElapsed)
+quantile(failed$time_in_days, probs = 0.95)
+quantile(success$time_in_days, probs = 0.95)
+summary(failed$time_in_days)
+#Visualization with frequency polygons
+freqpoly <- ggplot(success, aes(time_in_days)) + geom_histogram(binwidth = 1, fill = 'pink') + geom_freqpoly(bins = 50)
+print(freqpoly + ggtitle("Distribution of time for successful campaigns to reach goal") + labs(y= "Number of campaigns", x= "Time in days"))
+#Visualization with mean line
+meanline <- ggplot(success, aes(time_in_days)) + geom_histogram(binwidth = 2, fill= 'pink') + geom_vline(aes(xintercept=mean(time_in_days)),color="blue", linetype="dashed", size=0.5) 
+print(meanline + ggtitle("Time for successful campaigns to reach goal with mean line") + labs(y= "Number of campaigns", x= "Time in days"))
+
+#Visualization with frequency polygons
+freqpoly <- ggplot(failed, aes(time_in_days)) + geom_histogram(binwidth = 1, fill = 'red') + geom_freqpoly(bins = 50)
+print(freqpoly + ggtitle("Distribution of time for failed campaigns") + labs(y= "Number of campaigns", x= "Time in days"))
+#Visualization with mean line
+meanline <- ggplot(failed, aes(time_in_days)) + geom_histogram(binwidth = 2, fill= 'red') + geom_vline(aes(xintercept=mean(time_in_days)),color="blue", linetype="dashed", size=0.5) 
+print(meanline + ggtitle("Time for failed campaigns to with mean line") + labs(y= "Number of campaigns", x= "Time in days"))
+
+
+#Backers
+kickstarter_df <- read.csv("C:/Users/Joban Sra/OneDrive/Documents/R/kickstarter_brainstation.csv")
+successful_df <- kickstarter_df[kickstarter_df$state=="successful",]
+summary(successful_df$backers)
+quantile(successful_df$backers, probs = 0.95)
+canceled_failed_df <- kickstarter_df[kickstarter_df$state=="canceled"| kickstarter_df$state=="failed",]
+others_df <- kickstarter_df[kickstarter_df$state == "live"| kickstarter_df$state == "suspended"|kickstarter_df$state == "undefined",]
+summary(canceled_failed_df$backers)
+quantile(canceled_failed_df$backers, probs = 0.95) #108 backers at 95 quantile
+summary(others_df$backers)
+quantile(others_df$backers, probs = 0.95)
+hist(successful_df$backers[successful_df$backers < 829], col = "blue", breaks = 100, xlab = "number of backers", ylab = "Frequency", main = "Histogram of backers for different outcomes")
+hist(canceled_failed_df$backers[canceled_failed_df$backers < 829], col = "orange", add = TRUE,  breaks = 100)
+hist(others_df$backers[others_df$backers < 829], col= "green", add = TRUE,  breaks = 100)
+axis(side = 1, at = c(100,200,300,400,500,600,700,800,900))
+legend("topright",c("successful", "canceled+failed", "live+suspended+undefined"), fill = c("blue", "orange", "green"))
+##Calculate the number of 0’s for the number of backers in successful projects:
+sum_of_backers <- sum(successful_df$backers==0)
+length_of_successful_backers <- length(successful_df$backers)
+(sum_of_backers*100)/length_of_successful_backers
+
+
+
+
+#goal
+kickstarter_df2 <- read.csv("C:/Users/Joban Sra/OneDrive/Documents/R/kickstarter_brainstation.csv")
+successful_df2 <- kickstarter_df2[kickstarter_df2$state=="successful",]
+summary(successful_df2$goal)
+quantile(successful_df2$goal, probs = 0.95)
+canceled_failed_df2 <- kickstarter_df2[kickstarter_df2$state=="canceled"| kickstarter_df2$state=="failed",]
+others_df2 <- kickstarter_df2[kickstarter_df2$state == "live"| kickstarter_df2$state == "suspended"|kickstarter_df2$state == "undefined",]
+summary(canceled_failed_df2$goal)
+quantile(canceled_failed_df2$goal, probs = 0.95) #72 backers at 95 quantile
+summary(others_df2$goal)
+quantile(others_df$goal, probs = 0.95)
+hist(canceled_failed_df2$goal[canceled_failed_df2$goal< 100000], col = "orange", breaks = 100, xlab = "number of backers", ylab = "Frequency", main = "histogram of goal for different states")
+hist(successful_df2$goal[successful_df2$goal < 100000], col = "blue", add = TRUE,  breaks = 100)
+hist(others_df2$goal[others_df2$goal < 100000], col= "green", add = TRUE,  breaks = 100)
+legend("topright",c("successful", "canceled+failed", "live+suspended+undefined"), fill = c("blue", "orange", "green"))
+
+
+#Funding Goal
+ks <- read.csv("C:/Users/Joban Sra/OneDrive/Documents/R/kickstarter_brainstation.csv")
+ks_summary <- ks %>% group_by(main_category) %>% summarise(mean_goal = mean(goal), median_goal = median(goal))
+mean_barplot <- ggplot(data=ks_summary, aes(x=main_category, y=mean_goal))+
+  geom_bar(stat='identity', fill = "#CBCBA9") +
+  theme(axis.text.x = element_text(angle=90)) +
+  ggtitle('Average Funding Goal by Category') +
+  xlab('Category') + ylab('Goal in USD')
+
+median_barplot <- ggplot(data=ks_summary, aes(x=main_category, y=median_goal))+
+  geom_bar(stat='identity', fill = "#A9CBCB") +
+  theme(axis.text.x = element_text(angle=90)) +
+  ggtitle('Median Funding Goal by Category') +
+  xlab('Category') + ylab('Goal in USD')
+
+ks$success_fail <- ifelse(ks$state == 'successful', 'success', 'failed or otherwise')
+ks_summary2 <- ks %>% group_by(main_category, success_fail) %>% summarise(mean_goal = mean(goal), median_goal = median(goal))
+compare_barplot <- ggplot(data=ks_summary2, aes(x=main_category, y=median_goal, fill=success_fail))+
+  geom_bar(stat='identity', width = 0.65, position= position_dodge(width=0.65)) +
+  theme(axis.text.x = element_text(angle=90)) +
+  ggtitle('Median Funding Goal by Category') +
+  xlab('Category') + ylab('Goal in USD')
+
+ks$success_fail <- ifelse(ks$state == 'successful', 'success', 'failed or otherwise')
+ks_summary3 <- ks %>% filter(ks$sub_category == "Tabletop Games", year(launched) != 2018) %>% group_by(sub_category, success_fail, year1 = year(launched)) %>% summarise(mean_goal = mean(goal), median_goal = median(goal))
+p <- ggplot(data=ks_summary3, aes(x = year1, y=median_goal, fill=success_fail)) +
+        geom_bar(stat = "identity",  width = 0.65, position= position_dodge(width=0.65)) +
+scale_x_continuous(breaks=c(2010,2011,2012,2013,2014,2015,2016,2017))+
+  geom_hline(aes(yintercept = 5000), color = 'blue', linetype="dashed", size=0.5)+
+  theme(axis.text.x = element_text(angle=90)) +
+  ggtitle('Median Funding Goal for Tabletop sub category with median line for succesful campaigns') +
+  xlab('Sub_category') + ylab('Goal in USD')
+  
+p
+
+
+
+options(scipen=999)
+format(summary(caps), big.mark = ",") # using big.mark to add commas
+
+library(ggplot2)
+library(dplyr)
+library(plotly)
+install.packages("hrbrthemes")
+library(hrbrthemes)
+p <- ks_summary3 %>% 
+  ggplot(aes(x=launched, y=median_goal))+
+  geom_line(color="#69b3a2") +
+  ylab("Median goal in USD") +
+  theme_ipsum()
+
